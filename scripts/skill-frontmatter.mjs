@@ -1,5 +1,5 @@
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
-const ALLOWED_KEYS = new Set(['name', 'version', 'description']);
+const ALLOWED_KEYS = new Set(['name', 'version', 'description', 'when_to_use', 'license', 'metadata']);
 
 export function parseSkillDocument(text) {
   if (typeof text !== 'string') throw new TypeError('Skill document must be text');
@@ -38,24 +38,29 @@ export function parseSkillDocument(text) {
       continue;
     }
 
+    // All other fields (description, when_to_use, license, metadata) must be JSON-quoted strings
     if (!rawValue.startsWith('"') || !rawValue.endsWith('"')) {
-      throw new Error('description must be a JSON-quoted YAML string');
+      throw new Error(`${key} must be a JSON-quoted YAML string`);
     }
 
-    let description;
+    let value;
     try {
-      description = JSON.parse(rawValue);
+      value = JSON.parse(rawValue);
     } catch (error) {
-      throw new Error(`description is not a valid quoted string: ${error.message}`);
+      throw new Error(`${key} is not a valid quoted string: ${error.message}`);
     }
-    if (typeof description !== 'string' || !description.trim()) {
-      throw new Error('description must be a non-empty string');
+    
+    if (key === 'description' || key === 'when_to_use') {
+      if (typeof value !== 'string' || !value.trim()) {
+        throw new Error(`${key} must be a non-empty string`);
+      }
     }
-    metadata.description = description;
+    
+    metadata[key] = value;
   }
 
   for (const key of ALLOWED_KEYS) {
-    if (key === 'version') continue; // optional field
+    if (['version', 'when_to_use', 'license', 'metadata'].includes(key)) continue; // optional fields
     if (!Object.hasOwn(metadata, key)) throw new Error(`frontmatter ${key} missing`);
   }
 

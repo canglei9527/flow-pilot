@@ -42,7 +42,7 @@ test('rejects extra or duplicate metadata', () => {
     () => parseSkillDocument(skill([
       'name: test-skill',
       'description: "Test description"',
-      'when_to_use: maintenance'
+      'unknown_field: "value"'
     ])),
     /unsupported frontmatter key/
   );

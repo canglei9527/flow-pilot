@@ -1,7 +1,8 @@
 ---
 name: ai-project-bootstrapper
-version: "0.4.15"
-description: "Use when the user asks to create, build, scaffold, initialize, or develop a new standalone software project from scratch, including 创建、新建、开发、搭建、实现一个新应用/网站/服务/接口/CLI/脚本/机器人/自动化工具，或初始化新目录/空目录；即使没有项目名或文件路径，只要目标是独立项目也适用。规格、资产或输出路径可以作为输入。Do not use for modifying existing source, fixing a Bug, refactoring an existing project, or merely explaining/reviewing an artifact; route those to ai-project-maintainer."
+version: "0.4.16"
+description: "中文触发：创建、新建、开发、搭建、实现新应用、从零开始、独立项目、初始化新目录/空目录；无需项目名或文件路径。 Use when asked to create, build, scaffold, initialize, or develop a standalone project from scratch. Not for existing source, Bug fixes, or refactors; route to ai-project-maintainer."
+when_to_use: "Creating new standalone projects from scratch. Not for modifying, fixing, or reviewing existing code."
 ---
 
 # AI 项目初始化器

@@ -5,7 +5,7 @@ import { parseSkillDocument } from './skill-frontmatter.mjs';
 import { inspectIndex } from './index-health.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const releaseVersion = '0.4.15';
+const releaseVersion = '0.4.16';
 const failures = [];
 const check = (condition, message) => {
   if (!condition) failures.push(message);
@@ -143,7 +143,23 @@ const bootstrapExceptions = readRequired('skills/ai-project-bootstrapper/referen
 const evals = readRequired('evals/prompts.md') ?? '';
 
 check(maintainerDescription.includes('现有产品行为') && maintainerDescription.includes('期望行为') && maintainerDescription.includes('修复'), 'maintainer natural-language bug trigger coverage missing');
-check(maintainerDescription.includes('刷新后又出现') && maintainerDescription.includes('无需现有项目名或文件路径'), 'maintainer short Chinese bug trigger coverage missing');
+check(maintainerDescription.includes('刷新后又出现') && maintainerDescription.includes('无需项目名'), 'maintainer short Chinese bug trigger coverage missing');
+check(maintainerDescription.includes('继续') && maintainerDescription.includes('未完成') && maintainerDescription.includes('收尾'), 'maintainer continuation trigger coverage missing');
+
+// The client skill list only renders the leading slice of `description`; text past this
+// offset is invisible to the model choosing a Skill, so trigger phrases must come first.
+const descriptionWindow = 249;
+const bootstrapperDescription = skillDocuments.get('ai-project-bootstrapper')?.metadata.description ?? '';
+const withinWindow = (description, phrase) => {
+  const index = description.indexOf(phrase);
+  return index >= 0 && index + phrase.length <= descriptionWindow;
+};
+const maintainerVisible = ['修复', '排查', '异常', '报错', '回归', '刷新后又出现', '修复这个BUG', '现有产品行为', '期望行为', '继续', '未完成', '收尾', '验证', '归档', '维护文档', '无需项目名', 'bug', 'fix', 'review', 'diagnose', 'regression'];
+const bootstrapperVisible = ['创建', '新建', '开发', '搭建', '从零开始', '独立项目', '初始化新目录', '空目录', '无需项目名或文件路径', 'create', 'build', 'scaffold', 'initialize', 'standalone', 'from scratch', 'ai-project-maintainer'];
+const hiddenMaintainer = maintainerVisible.filter((phrase) => !withinWindow(maintainerDescription, phrase));
+const hiddenBootstrapper = bootstrapperVisible.filter((phrase) => !withinWindow(bootstrapperDescription, phrase));
+check(hiddenMaintainer.length === 0, `maintainer trigger phrases fall outside the ${descriptionWindow}-char client window: ${hiddenMaintainer.join('、')}`);
+check(hiddenBootstrapper.length === 0, `bootstrapper trigger phrases fall outside the ${descriptionWindow}-char client window: ${hiddenBootstrapper.join('、')}`);
 check(maintainer.includes('READ_ONLY') && maintainer.includes('NORMAL_CHANGE') && maintainer.includes('STRUCTURAL_CHANGE'), 'maintainer operation paths missing');
 check(maintainer.includes('EXTERNAL_ACTION') && maintainer.includes('does not authorize writing'), 'maintainer authorization boundary missing');
 check(maintainer.includes('fast-path.md') && maintainer.includes('structural-change.md') && maintainer.includes('verification-and-safety.md') && maintainer.includes('documentation-migration.md'), 'maintainer direct reference routing missing');

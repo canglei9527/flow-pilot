@@ -1,5 +1,61 @@
 # 变更记录
 
+## 0.4.16 - 2026-09-20
+
+### 修复：Skill 触发失败（触发词排在客户端可见窗口外）
+
+**问题现象**
+- Skills 已正确安装且所有验证通过，但实际对话中几乎从不自动触发
+- "继续这个没完成的"等续作请求完全无法触发 `ai-project-maintainer`
+- 用户只能手动点名 Skill，自动路由功能失效
+
+**根本原因**
+客户端技能列表只把 `description` 的前 **249 字符**渲染给模型。原 `description` 设计把中文触发词排在第 258+ 字符位置（`修复、解决` 在 258，`刷新后又出现` 在 276），英文核心词 `bug` 在第 260 字符——模型在选择 Skill 时完全看不到这些触发词，只能看到英文框架描述的影子。
+
+独立缺陷：两个 `description` 完全没有"继续/未完成/收尾/验证归档"等续作类触发词，即使完整描述可见也不覆盖"继续未完成的阶段"这类请求。
+
+**修复措施**
+1. **重排 `ai-project-maintainer` description**（489 → 409 字符）
+   - 中文触发词前置：修复、解决、排查、异常、报错、回归、刷新后又出现、修复这个BUG、现有产品行为与期望行为的差异
+   - 增加续作类触发词：继续未完成的工作、收尾阶段、验证并归档、更新维护文档
+   - 英文核心词前置：`Use for bug, regression, broken feature...`（bug/fix/review/diagnose/regression 全部在 249 窗口内）
+
+2. **增加 `when_to_use` 字段**
+   - 客户端诊断文档明确说明模型会看 `description` + `when_to_use`
+   - maintainer: "Existing project maintenance: bug fixes, feature changes, refactoring, code review, investigation. Not for creating new projects from scratch."
+   - bootstrapper: "Creating new standalone projects from scratch. Not for modifying, fixing, or reviewing existing code."
+
+3. **解析器与验证器增强**
+   - 放宽 `scripts/skill-frontmatter.mjs` 从只允许 name/version/description 三个键，改为接受 when_to_use/license/metadata（与客户端对齐）
+   - 更新 `scripts/verify-skill-repo.mjs` 窗口检查列表，增加英文核心词（bug、fix、review、diagnose、regression）和"期望行为"
+   - 新增回归门确保所有中英文触发词都在 249 字符窗口内，防止未来再次截断
+
+4. **文档更新**
+   - `CONTRIBUTING.md`：明确 description 前 249 字符窗口约束，要求触发词前置
+   - `evals/prompts.md`：增加第 28、29 条评估提示（续作触发、可见窗口检查项）
+   - `BUG_HISTORY.md`：详细记录现象、根因、修复措施、验证方法和未验证风险
+
+**验证结果**
+- 35 个 Node 测试全部通过
+- 仓库验证通过（2 个 Skill、44 个必需文件、版本一致性、窗口可见性全部通过）
+- 回归门反向验证：临时破坏触发词位置后门正确报错，证明其可失败而非恒真
+- 已同步到 `~/.zcode/skills` 和 `~/.agents/skills` 两处已安装位置
+
+**注意事项**
+- 用户需**重启 ZCode 客户端**才能让修改生效（客户端启动时重新扫描技能目录）
+- 249 字符窗口是从当前客户端版本实际渲染反推的，不是公开契约；客户端升级后可能变化
+- 本轮未在真实客户端做端到端前向触发测试，触发改善程度需用户实际观测
+
+**影响文件**
+- `skills/ai-project-maintainer/SKILL.md`
+- `skills/ai-project-bootstrapper/SKILL.md`
+- `scripts/skill-frontmatter.mjs`
+- `scripts/tests/skill-frontmatter.test.mjs`
+- `scripts/verify-skill-repo.mjs`
+- `CONTRIBUTING.md`
+- `evals/prompts.md`
+- `BUG_HISTORY.md`
+
 ## 0.4.15 - 2026-09-05
 
 - Default new projects to DURABLE for long-term AI maintenance.

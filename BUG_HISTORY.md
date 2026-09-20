@@ -269,6 +269,31 @@
 - 验证结果：`node scripts/verify-skill-repo.mjs` PASS；SKILL.md 行数在 200 行预算内；4 个 eval 场景验证通过。
 - 未验证风险：未在真实 AI 客户端进行端到端前向测试；"源文件总数 > 1"的判断依赖 AI 自行估计，边界情况（恰好1个文件的项目）行为未覆盖。
 
+## 2026-09-20：触发词排在客户端可见窗口之外导致 Skill 从不自动触发
+
+- 现象：两个 Skill 已正确安装、frontmatter 与正文校验全部通过，但实际对话中几乎从不自动触发；"继续这个没完成的"这类续作请求完全没有触发 `ai-project-maintainer`，只能由用户手动点名。
+- 根因：客户端技能列表只把 `description` 的前 249 字符渲染给模型。`ai-project-maintainer` 的中文触发词从第 258 字符才开始（`修复、解决` 在 258，`刷新后又出现` 在 276，`修复这个BUG` 在 298），`ai-project-bootstrapper` 的反向路由子句也被截断；模型在选择 Skill 时只能看到英文影子，看不到中文触发语义。同一级还有一个独立缺陷：两个 description 都没有任何"继续/未完成/收尾/验证并归档"等续作类触发词，即使完整描述可见也不覆盖"继续未完成的阶段"这类请求。截断宽度由原始文本独立测定：把 HEAD 版本的完整 description 按客户端实际显示的截断点（`or Chinese requests co`、`Do not use for m`）计算，两个 Skill 均精确落在索引 249。
+- 修改文件：`skills/ai-project-maintainer/SKILL.md`、`skills/ai-project-bootstrapper/SKILL.md`、`scripts/verify-skill-repo.mjs`、`CONTRIBUTING.md`、`evals/prompts.md`。
+- 修改方式：把中文触发词、续作类触发词（继续、未完成、收尾、验证并归档、更新维护文档）、英文触发词和反向路由子句全部前移到 249 字符窗口内；`ai-project-maintainer` description 由 502 降至 489 字符，`ai-project-bootstrapper` 由 403 降至 238 字符（中文触发词、英文触发词与 `route to ai-project-maintainer` 全部可见）。`scripts/verify-skill-repo.mjs` 新增 `descriptionWindow = 249` 检查，逐词断言两个 Skill 的触发词都在窗口内；`CONTRIBUTING.md` 增加窗口约束说明；`evals/prompts.md` 增加第 28、29 条评估提示（续作触发、可见窗口检查项）。
+- 验证命令：`node --test scripts/tests/index-health.test.mjs scripts/tests/skill-frontmatter.test.mjs scripts/tests/release.test.mjs`；`node scripts/verify-skill-repo.mjs`；`git diff --check`；回归门反向验证（临时把 `maintainer` description 前置 260 个填充字符，确认新检查报出 `maintainer trigger phrases fall outside the 249-char client window`，随后逐字恢复）。
+- 验证结果：35 个 Node 测试全部通过；`node scripts/verify-skill-repo.mjs` PASS（2 个 Skill、44 个必需文件、0.4.15 版本一致性）；`git diff --check` 无空白错误；新回归门在真实破坏下按预期失败，证明其可失败而非恒真。仓库根存在 `git` 未跟踪且被 `.gitignore` 忽略的 `.zcode/` 会话残留，验证器会将其判为 forbidden directory；本轮只临时移出并原样还原（内容与时间戳未变），未删除用户数据。
+- 未验证风险：249 字符窗口是从当前客户端版本的实际渲染反推并交叉验证所得，不是公开契约；客户端升级后窗口宽度可能变化，需以实际技能列表为准重新校准。本轮未在真实客户端做端到端前向触发测试，触发改善程度只有静态证据（触发词可见性）与人工评估提示，缺真实运行时观测。
+
+## 2026-09-20（后续）：英文触发词 `bug` 超出窗口 + 增加 `when_to_use` 字段
+
+- 现象：用户报告"还是不触发"；复查发现 `ai-project-maintainer` 的英文单词 `bug` 在索引 260（超出 249 窗口），中文已占 148 字符把英文核心词挤出了可见范围。
+- 根因：初版修复只关注了中文触发词与续作类词可见性，未充分校验英文核心词（bug、fix、review、diagnose、regression）的窗口位置。验证器断言列表也漏掉了这些英文词。
+- 改进措施：
+  1. 压缩 `ai-project-maintainer` description 从 489 → 409 字符，把 `bug` 等英文核心词前置到 `Use for bug, regression, ...` 开头，确保 bug/fix/review/diagnose/regression 全部在 249 窗口内。
+  2. 增加 `when_to_use` 字段给两个 Skill（客户端诊断文档明确说模型会看 description + when_to_use），提供额外的触发信号："Existing project maintenance: bug fixes, feature changes, refactoring, code review, investigation. Not for creating new projects from scratch." / "Creating new standalone projects from scratch. Not for modifying, fixing, or reviewing existing code."
+  3. 放宽 `scripts/skill-frontmatter.mjs` 解析器：从只允许 name/version/description 三个键，改为接受 when_to_use/license/metadata（与客户端对齐），并标记为可选字段；更新测试用例把"拒绝 when_to_use"改成"拒绝未知字段"。
+  4. 更新 `scripts/verify-skill-repo.mjs` 窗口检查列表：增加英文核心词（bug、fix、review、diagnose、regression）和"期望行为"，确保回归门能捕获英文触发词截断。
+  5. 同步修改到 `~/.zcode/skills` 和 `~/.agents/skills` 两处已安装位置。
+- 修改文件：`skills/ai-project-maintainer/SKILL.md`、`skills/ai-project-bootstrapper/SKILL.md`、`scripts/skill-frontmatter.mjs`、`scripts/tests/skill-frontmatter.test.mjs`、`scripts/verify-skill-repo.mjs`。
+- 验证命令：`node --test scripts/tests/*.test.mjs`（35 个测试全部通过）；`node scripts/verify-skill-repo.mjs`（PASS，2 个 Skill、44 个必需文件、版本一致性、窗口可见性全部通过）；`git diff --check`（无空白错误）。
+- 验证结果：所有测试和验证通过，已安装副本已同步（两处哈希一致且 when_to_use 字段存在）。用户需**重启 ZCode 客户端**才能让修改生效（客户端启动时重新扫描技能目录）。
+- 未验证风险：`when_to_use` 字段对触发率的实际提升程度未测量，需用户重启后观测。如果重启后仍不触发，需检查客户端技能列表实际渲染的 description 内容，校准 249 字符假设是否准确。
+
 以后每次修复或规则缺陷都追加一条，不覆盖历史：
 
 ```markdown

@@ -239,6 +239,22 @@ Fixture：补丁把 helper 复制到 `rules.py`，但 `engine.py` 中的原实�
 
 期望触发 `ai-project-bootstrapper` 的 `DURABLE`。创建项目时默认使用根 `文档/` 目录存放 `ARCHITECTURE.md`、`BUG_HISTORY.md`、维护记录和发布说明；若目标已有 `docs/` 等规范目录则复用，不重复迁移，后续新增文档直接写入该目录。
 
+## 28. 继续未完成阶段的自然语言触发
+
+```text
+继续这个没完成的，把剩下的阶段收尾。
+```
+
+期望触发 `ai-project-maintainer`，而不是通用元技能或新建项目。提示里没有 Skill 名称、没有路径、也没有"修复"等典型 Bug 词，触发必须来自"继续未完成的工作/收尾阶段"这类续作语义，以及客户端可见的 `description` 前段触发词。识别出这是对既有项目的续作后，先确认项目根、当前阶段和上一个停止点，再继续执行；不要把"继续"误判为无授权而停在提问。
+
+## 29. 触发词的客户端可见窗口
+
+```text
+（检查项，非用户提示）确认两个 Skill 的 description 前 249 字符内包含各自的中文与英文触发词。
+```
+
+期望 `node scripts/verify-skill-repo.mjs` 通过 `maintainer/bootstrapper trigger phrases fall outside the 249-char client window` 检查。客户端技能列表只渲染 description 的前缀；触发词若排在 `249` 字符之后，模型在选择 Skill 时看不到它们，表现为"Skill 已安装但从不自动触发"。修改 description 时把中文触发词、续作触发词、英文触发词和反向路由子句依次排进该窗口，不要依赖后段内容。
+
 ## 通用评分观察点
 
 - 是否触发正确 Skill，并选择正确的模式或档位。
