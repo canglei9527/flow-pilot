@@ -1,7 +1,7 @@
 ---
 name: ai-project-maintainer
 version: "0.4.16"
-description: "中文触发：修复、解决、排查、异常、报错、回归、刷新后又出现、修复这个BUG、现有产品行为与期望行为的差异、继续未完成的工作、收尾阶段、验证并归档、更新维护文档；无需项目名或路径。Use for bug, regression, broken feature, wrong result, task reappearing, or to explain, diagnose, review, fix, extend, or restructure an existing software project. Covers source, tests, build configuration, routes, failures, oversized modules, maintainability. Do not infer write authorization from a path or attachment."
+description: "中文触发：修复、解决、排查、异常、报错、回归、继续未完成工作、更新维护文档；无需项目名或路径。Use for bug, regression, broken feature, review, diagnose, fix, extend, or restructure an existing project. Do not infer write authorization from a path or attachment."
 when_to_use: "Existing project maintenance: bug fixes, feature changes, refactoring, code review, investigation. Not for creating new projects from scratch."
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: ai-project-bootstrapper
 version: "0.4.16"
-description: "中文触发：创建、新建、开发、搭建、实现新应用、从零开始、独立项目、初始化新目录/空目录；无需项目名或文件路径。 Use when asked to create, build, scaffold, initialize, or develop a standalone project from scratch. Not for existing source, Bug fixes, or refactors; route to ai-project-maintainer."
+description: "中文触发：创建、新建、开发、搭建、从零开始、独立项目、初始化新目录；无需项目名或路径。Use when asked to create, build, scaffold, or initialize a standalone project from scratch. Not for existing source or bug fixes; route to ai-project-maintainer."
 when_to_use: "Creating new standalone projects from scratch. Not for modifying, fixing, or reviewing existing code."
 ---
 
@@ -24,7 +24,7 @@ when_to_use: "Creating new standalone projects from scratch. Not for modifying, 
 
 ## 文档目录约定
 
-新项目默认在项目根建立 `文档/` 目录，维护文档直接放入其中，包括 `ARCHITECTURE.md`、`BUG_HISTORY.md`、维护记录和发布说明。若项目已有 `文档/`、`docs/` 或 `documentation/` 等规范文档目录，则复用已有文档目录，不重复迁移，只整理新增或遗漏的维护文档；后续新增维护文档直接写入规范文档目录。`MICRO` 单文件工具只有在用户明确要求单文件且不需要维护文档时，才不创建该目录。
+新项目默认在项目根建立 `文档/` 目录，维护文档直接放入其中，包括 `ARCHITECTURE.md`、`BUG_HISTORY.md`、维护记录和发布说明。若项目已有 `文档/`、`docs/` 或 `documentation/` 等规范文档目录，则复用已有文档目录，不重复迁移，只整理新增或遗漏的维护文档；后续新增维护文档直接写入规范文档目录。`MICRO` 仅当用户明确要求维护文档时才创建 `文档/` 目录；用户明确要求单文件工具时不创建该目录。
 
 新项目创建流程只整理本次创建产生的维护文档，不扫描或迁移父级工作区和其他项目；文档目录选择、入口和职责必须记录在项目架构或索引中。
 

@@ -9,9 +9,14 @@ This directory contains portable copies of the user-level project skills.
 
 ## Install
 
-Copy each skill directory to the user-level skill location:
+Copy each skill directory into a `.agents/skills/` folder at the project root or user level, matching the install scope you need:
 
 ```text
+# project-level (recommended for most users)
+.agents/skills/ai-project-maintainer/
+.agents/skills/ai-project-bootstrapper/
+
+# user-level (shared across all projects)
 ~/.agents/skills/ai-project-maintainer/
 ~/.agents/skills/ai-project-bootstrapper/
 ```

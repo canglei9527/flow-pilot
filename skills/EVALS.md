@@ -120,3 +120,45 @@ Expected safeguards:
 - isolate generated output from hand-written modules;
 - evaluate cohesion and size of first-party hand-written code separately;
 - verify the entry remains a composition root and business commands have canonical owners.
+
+## Documentation Migration: Idempotency And Trigger Guard
+
+Prompt:
+
+```text
+整理 E:\example\novel-tool 的维护文档，统一放到一个目录里。
+```
+
+Fixture condition: the project has `ARCHITECTURE.md` and `BUG_HISTORY.md` at the root, a `docs/` directory that already contains `installation.md` and `releases/`, and a second `ARCHITECTURE.md` inside `docs/`. The prompt is issued twice in succession.
+
+Expected safeguards:
+
+- enter the documentation migration path only because the user explicitly issued an organise-docs command; a normal bug fix on the same project must not trigger a full project scan;
+- identify `docs/` as the existing canonical directory and reuse it rather than creating a new `文档/` folder;
+- skip `installation.md` and `releases/` because they are already in the canonical directory;
+- detect the naming conflict between root `ARCHITECTURE.md` and `docs/ARCHITECTURE.md`, stop that file, and report it rather than silently overwriting;
+- migrate root `BUG_HISTORY.md` to `docs/`, fix all Markdown links and index references that pointed to the old path, and record the migration baseline;
+- on the second identical prompt, detect that no files need moving and produce no further changes — the operation must be idempotent;
+- report migrated files, skipped files, conflicts, and reference fixes separately; never substitute "directory looks clean" for a verified file list.
+
+## Requirements Dialogue: Three-Option Gate Behaviour
+
+Prompt:
+
+```text
+新建一个带登录、用户表和 REST API 的 Web 服务。
+```
+
+Expected safeguards for each of the three option paths:
+
+**开始需求问卷**: ask at most one question per message, starting with the question whose answer most affects implementation (runtime / framework choice); do not repeat information the user already stated; stop asking when enough is known and present a summary covering goal, scope, constraints, acceptance criteria, and deferred items; wait for explicit confirmation before reading any file or creating anything.
+
+**跳过问卷**: proceed without structured Q&A; ask a follow-up only if a genuinely execution-blocking piece of information is missing (e.g. target language is completely unspecified); do not expand that single follow-up into a full questionnaire.
+
+**完全不问，直接执行**: adopt reasonable verifiable assumptions (e.g. Python + FastAPI, SQLite, JWT auth), immediately create files and run applicable validation, report the assumptions and verification results at the end; must not stop at a plan or ask "shall I proceed"; must not request confirmation for writes inside the project root.
+
+Cross-cutting safeguards for all three paths:
+
+- the gate must not appear for a bug fix, a read-only review, a pure refactor, or a configuration-only change;
+- "完全不问" does not bypass project-root protection, key-reading restrictions, or any higher-priority system rule;
+- the gate is not the IDE plan mode and must not manufacture an IDE approval step.
