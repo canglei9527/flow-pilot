@@ -11,7 +11,7 @@
 3. 运行最小可用的语法、冒烟或示例检查。
 4. 报告运行了什么，什么未被验证。
 
-用户要求单文件工具时保持单文件。不得创建 `AGENTS.md`、`ai-context/`、`FUNCTION_INDEX.md`、`architecture/`、`bugs/`、`operations/` 或每目录索引，仅因为此参考文件存在；若用户明确要求维护文档，则将其放入默认 `文档/` 目录。
+用户要求单文件工具时保持单文件。不得创建 `AGENTS.md`、`ai-context/`、`FUNCTION_INDEX.md`、`architecture/`、`bugs/`、`operations/` 或每目录索引，仅因为此参考文件存在；默认创建 `文档/` 目录用于后续维护记录，除非用户明确表示"临时脚本""用完就扔"或"不需要维护文档"。
 
 ## STANDARD
 
