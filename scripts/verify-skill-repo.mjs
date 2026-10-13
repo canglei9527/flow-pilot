@@ -1,11 +1,12 @@
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseSkillDocument } from './skill-frontmatter.mjs';
 import { inspectIndex } from './index-health.mjs';
+import { inspectRepositoryBoundary, inspectSkillReferences } from './skill-integrity.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const releaseVersion = '0.4.16';
+const releaseVersion = '0.4.17';
 const failures = [];
 const check = (condition, message) => {
   if (!condition) failures.push(message);
@@ -27,6 +28,7 @@ const required = [
   'CHANGELOG.md',
   'LICENSE',
   '.gitignore',
+  '.gitattributes',
   '.github/workflows/verify.yml',
   '.claude-plugin/marketplace.json',
   '.claude-plugin/plugin.json',
@@ -44,13 +46,18 @@ const required = [
   'skills/ai-project-maintainer/references/documentation-migration.md',
   'skills/ai-project-maintainer/references/structural-change.md',
   'skills/ai-project-maintainer/references/verification-and-safety.md',
+  'skills/ai-project-maintainer/references/requirements-dialogue.md',
   'skills/ai-project-bootstrapper/SKILL.md',
   'skills/ai-project-bootstrapper/references/workflow.md',
   'skills/ai-project-bootstrapper/references/navigation-and-budgets.md',
   'skills/ai-project-bootstrapper/references/verification-and-exceptions.md',
+  'skills/ai-project-bootstrapper/references/requirements-dialogue.md',
   'skills/shared/requirements-dialogue.md',
   'docs/history/v2-migration-notes.md',
   'scripts/skill-frontmatter.mjs',
+  'scripts/skill-integrity.mjs',
+  'scripts/sync-skill-references.mjs',
+  'scripts/tests/skill-integrity.test.mjs',
   'scripts/index-health.mjs',
   'scripts/tests/index-health.test.mjs',
   'scripts/tests/skill-frontmatter.test.mjs',
@@ -82,13 +89,7 @@ for (const name of skillNames) {
     check(document.body.length <= 14000, `${name}: SKILL.md body exceeds 14000 characters`);
     check(text.split(/\r?\n/).length <= 200, `${name}: SKILL.md exceeds 200 lines`);
 
-    const pointers = [...text.matchAll(/\]\(((?:\.\.\/shared|references)\/[^)]+)\)/g)].map((match) => match[1]);
-    for (const pointer of pointers) {
-      const resolvedPath = pointer.startsWith('../shared')
-        ? resolve(skillRoot, '..', pointer.slice(3))
-        : resolve(skillRoot, pointer);
-      check(existsSync(resolvedPath), `${name}: missing reference ${pointer}`);
-    }
+    failures.push(...inspectSkillReferences(skillRoot).map((message) => `${name}: ${message}`));
   } catch (error) {
     failures.push(`${name}: invalid frontmatter (${error.message})`);
   }
@@ -137,6 +138,11 @@ const documentationMigration = readRequired('skills/ai-project-maintainer/refere
 const structuralChange = readRequired('skills/ai-project-maintainer/references/structural-change.md') ?? '';
 const maintainerSafety = readRequired('skills/ai-project-maintainer/references/verification-and-safety.md') ?? '';
 const sharedRequirements = readRequired('skills/shared/requirements-dialogue.md') ?? '';
+for (const name of skillNames) {
+  const copy = readRequired(`skills/${name}/references/requirements-dialogue.md`);
+  check(copy?.replaceAll('\r\n', '\n') === sharedRequirements.replaceAll('\r\n', '\n'),
+    `${name}: requirements copy missing or out of sync; run node scripts/sync-skill-references.mjs --write`);
+}
 const bootstrapWorkflow = readRequired('skills/ai-project-bootstrapper/references/workflow.md') ?? '';
 const navigation = readRequired('skills/ai-project-bootstrapper/references/navigation-and-budgets.md') ?? '';
 const bootstrapExceptions = readRequired('skills/ai-project-bootstrapper/references/verification-and-exceptions.md') ?? '';
@@ -146,8 +152,8 @@ check(maintainerDescription.includes('现有产品行为') && maintainerDescript
 check(maintainerDescription.includes('刷新后又出现') && maintainerDescription.includes('无需项目名'), 'maintainer short Chinese bug trigger coverage missing');
 check(maintainerDescription.includes('继续') && maintainerDescription.includes('未完成') && maintainerDescription.includes('收尾'), 'maintainer continuation trigger coverage missing');
 
-// The client skill list only renders the leading slice of `description`; text past this
-// offset is invisible to the model choosing a Skill, so trigger phrases must come first.
+// Keep discovery cues within the historically observed compatibility budget.
+// This is a repository regression guard, not a universal client rendering contract.
 const descriptionWindow = 249;
 const bootstrapperDescription = skillDocuments.get('ai-project-bootstrapper')?.metadata.description ?? '';
 const withinWindow = (description, phrase) => {
@@ -194,8 +200,8 @@ check(documentationMigration.includes('文档整理与迁移') &&
   'maintainer documentation migration workflow missing');
 check(documentationMigration.includes('后续新增的') && documentationMigration.includes('规范文档目录'), 'maintainer documentation destination rule missing');
 check(documentationMigration.includes('普通 Bug 修复') && documentationMigration.includes('不触发全项目扫描'), 'maintainer documentation scan boundary missing');
-check(fastPath.includes('A 900-line target does not require a prior refactor'), 'large-file normal-change rule missing');
-check(structuralChange.includes('Migration Table') && structuralChange.includes('old implementation is deleted'), 'structural migration ownership rule missing');
+check(fastPath.includes('900 行的目标文件不需要先行重构') || fastPath.includes('A 900-line target does not require a prior refactor'), 'large-file normal-change rule missing');
+check((structuralChange.includes('迁移表') && structuralChange.includes('旧实现已删除')) || (structuralChange.includes('Migration Table') && structuralChange.includes('old implementation is deleted')), 'structural migration ownership rule missing');
 check(maintainerSafety.includes('Do not choose a license') && maintainerSafety.includes('NOT_RUN'), 'maintainer safety and verification status rules missing');
 check(bootstrapper.includes('new or empty project directory') && bootstrapper.includes('existing implementation must be changed'), 'bootstrapper routing/root boundary missing');
 check(bootstrapper.includes('创建') && bootstrapper.includes('从零开始') && bootstrapper.includes('独立项目') && bootstrapper.includes('无需项目名或文件路径'), 'bootstrapper natural-language trigger coverage missing');
@@ -209,8 +215,8 @@ check(bootstrapWorkflow.includes('新项目默认建立根 `文档/`') && bootst
 check(bootstrapper.includes('MICRO') && bootstrapper.includes('STANDARD') && bootstrapper.includes('DURABLE'), 'bootstrapper tier routing missing');
 check(bootstrapper.includes('workflow.md') && bootstrapper.includes('navigation-and-budgets.md') && bootstrapper.includes('verification-and-exceptions.md'), 'bootstrapper direct reference routing missing');
 check(bootstrapper.includes('requirements-dialogue.md') && sharedRequirements.includes('跳过问卷') && sharedRequirements.includes('IDE 的计划模式'), 'bootstrapper requirements dialogue routing missing');
-check(bootstrapWorkflow.includes('Do not create `AGENTS.md`') && bootstrapWorkflow.includes('Keep a requested single-file tool single-file'), 'MICRO workflow guard missing');
-check(navigation.includes('Review thresholds') && navigation.includes('Strict budgets'), 'budget review and strict-gate distinction missing');
+check((bootstrapWorkflow.includes('不得创建 `AGENTS.md`') && bootstrapWorkflow.includes('用户要求单文件工具时保持单文件')) || (bootstrapWorkflow.includes('Do not create `AGENTS.md`') && bootstrapWorkflow.includes('Keep a requested single-file tool single-file')), 'MICRO workflow guard missing');
+check((navigation.includes('审查阈值') && navigation.includes('严格预算')) || (navigation.includes('Review thresholds') && navigation.includes('Strict budgets')), 'budget review and strict-gate distinction missing');
 check(bootstrapExceptions.includes('NOT_AVAILABLE'), 'bootstrapper exception and real-time verification rules missing');
 check(evals.includes('独立程序需求的分流') && evals.includes('现有项目证据的维护分流') && evals.includes('意图不明确时只问一次'), 'routing evaluation prompts missing');
 
@@ -228,24 +234,10 @@ check(exampleIndexHealth.indexes.length === 1, 'minimal project ai-context index
 check(exampleIndexHealth.formatVersion === '1', 'minimal project ai-context format metadata missing');
 check(!exampleIndexHealth.statuses.includes('UNRESOLVED'), `minimal project index has unresolved routes: ${exampleIndexHealth.unresolved.join(', ')}`);
 
-const forbiddenDirectories = new Set(['.zcode', 'node_modules', 'dist', 'build']);
-const walk = (directory) => {
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.name === '.git') continue;
-    if (forbiddenDirectories.has(entry.name)) {
-      failures.push(`forbidden directory present: ${relative(root, join(directory, entry.name))}`);
-      continue;
-    }
-    if (entry.isDirectory()) walk(join(directory, entry.name));
-  }
-};
-walk(root);
-
-check(!existsSync(join(root, '.agents', 'skills')), 'legacy .agents/skills directory must not be published');
-check(!existsSync(join(root, 'src')), 'application source directory must not be included');
-check(!existsSync(join(root, 'assets')), 'application assets directory must not be included');
-check(!existsSync(join(root, 'vendor')), 'application vendor directory must not be included');
-check(statSync(join(root, 'LICENSE')).size > 1000, 'LICENSE is unexpectedly small');
+failures.push(...inspectRepositoryBoundary(root));
+if (existsSync(join(root, 'LICENSE'))) {
+  check(statSync(join(root, 'LICENSE')).size > 1000, 'LICENSE is unexpectedly small');
+}
 
 if (failures.length) {
   console.error(failures.map((failure) => `FAIL ${failure}`).join('\n'));

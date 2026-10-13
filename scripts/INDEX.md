@@ -7,7 +7,10 @@
 | `release-version.mjs` | Validates SemVer, synchronizes version metadata, and inserts changelog sections. | metadata read/prepare/apply exports | release config, Node fs | Version or changelog changes. |
 | `release-git.mjs` | Inspects Git state and owns commit, push, tag, and retry operations. | Git inspection and mutation exports | release config, Node child process | Git preflight or retry behavior. |
 | `release-github.mjs` | Owns authenticated `gh` release lookup and publication. | GitHub auth/release exports | release Git retry helpers | GitHub Release behavior. |
-| `verify-skill-repo.mjs` | Read-only repository integrity verification. | `node scripts/verify-skill-repo.mjs` | frontmatter parser, index health | Validating repository content. |
+| `verify-skill-repo.mjs` | Read-only repository integrity verification. | `node scripts/verify-skill-repo.mjs` | frontmatter parser, index health, skill integrity | Validating repository content. |
+| `skill-integrity.mjs` | Resolves runtime references inside one Skill and checks distributable repository paths. | `inspectSkillReferences`, `inspectRepositoryBoundary` | Node fs, path, local Git | Diagnosing broken single-Skill installs or local-artifact false positives. |
+| `sync-skill-references.mjs` | Checks or explicitly syncs local requirements references from the shared editing source. | `node scripts/sync-skill-references.mjs [--check\|--write]` | Node fs, path | Updating the shared requirements dialogue. |
+| `tests/skill-integrity.test.mjs` | Isolated source, Git boundary, diagnostics, reference closure, and sync regressions. | Node test suite | verifier CLI, sync CLI, temporary Git fixtures | Changing packaging or integrity validation. |
 | `index-health.mjs` | Checks reviewed task indexes for unresolved local routes and stale review metadata without rewriting them. | `node scripts/index-health.mjs <project-root>` | Node fs, path, optional Git metadata | Validating `ai-context/**/INDEX.md`. |
 | `skill-frontmatter.mjs` | Parses the repository's restricted Skill frontmatter. | parser export | none | Changing Skill metadata rules. |
 | `tests/index-health.test.mjs` | Regression tests for index path extraction, review freshness, and legacy compatibility. | Node test suite | index health module | Changing index validation behavior. |

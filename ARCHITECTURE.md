@@ -23,7 +23,8 @@
 | `skills/ai-project-bootstrapper/references/workflow.md` | 三档新项目的最小工作流和当前记录门槛 |
 | `skills/ai-project-bootstrapper/references/navigation-and-budgets.md` | 导航价值、索引格式、新鲜度检查、审查阈值、严格治理门和唯一所有权 |
 | `skills/ai-project-bootstrapper/references/verification-and-exceptions.md` | 验证状态、具名例外和 TMS320/CCS 实时约束 |
-| `skills/shared/requirements-dialogue.md` | 两个 Skill 共享的需求澄清门，三选一需求澄清流程、动态问卷、直接执行和 IDE 计划模式边界 |
+| `skills/shared/requirements-dialogue.md` | 需求澄清的唯一编辑源；定义三种模式、已有选择复用和授权边界，不作为运行时跨目录依赖 |
+| `skills/*/references/requirements-dialogue.md` | 随每个 Skill 分发的本地参考副本，由同步脚本维护，单独安装不依赖兄弟目录 |
 | `docs/history/v2-migration-notes.md` | V2 重构的历史迁移证据和行为变更记录（仅供参考） |
 | `examples/minimal-project/` | 与语言无关的项目文档示例，不包含真实业务代码 |
 | `examples/minimal-project/ai-context/INDEX.md` | 最小项目的审核后任务导航示例 |
@@ -32,18 +33,22 @@
 | `evals/prompts.md` | 触发和行为评估用的真实提示 |
 | `evals/rubric.md` | 评估结果的通过标准和常见失败模式 |
 | `scripts/verify-skill-repo.mjs` | 检查文件、frontmatter、引用和仓库边界 |
+| `scripts/skill-integrity.mjs` | 递归检查 Skill 运行时引用的真实路径边界；区分 Git 分发文件与本地忽略文件，支持无 Git 的源码归档 |
+| `scripts/sync-skill-references.mjs` | 默认只读检查需求参考副本；`--write` 从唯一源同步两个分发副本 |
+| `scripts/tests/skill-integrity.test.mjs` | 隔离源码归档、Git 会话边界、缺失文件诊断、副本同步和单 Skill 分发回归 |
 | `scripts/release.mjs` | 发布 CLI 编排：dry-run、版本准备、验证、提交、推送、tag 和 Release 阶段 |
 | `scripts/release-config.mjs` | 发布路径、默认分支、验证命令和重试策略的唯一所有者 |
 | `scripts/release-version.mjs` | SemVer、插件/marketplace/verifier/两个 Skill frontmatter 版本元数据同步和 changelog 顶部段落 |
 | `scripts/release-git.mjs` | Git 预检、提交、推送、tag 与可重试命令执行 |
 | `scripts/release-github.mjs` | 认证的 `gh` Release 查询、创建和传播轮询 |
-| `scripts/release.test.mjs` | 发布模块的离线行为测试 |
+| `scripts/tests/release.test.mjs` | 发布模块的离线行为测试 |
 | `scripts/INDEX.md` | 发布与验证脚本的任务路由和最小读取路径 |
 | `scripts/skill-frontmatter.mjs` | 解析仓库限定的无依赖 frontmatter 子集，拒绝未引用冒号和额外字段 |
-| `scripts/skill-frontmatter.test.mjs` | frontmatter 合法、CRLF、非法冒号、重复/额外字段的回归测试 |
+| `scripts/tests/skill-frontmatter.test.mjs` | frontmatter 合法、CRLF、非法冒号、重复/额外字段的回归测试 |
 | `README.md` | 安装、触发场景、验证和贡献入口 |
 | `CONTRIBUTING.md` | 修改 Skill、运行评估和提交变更的规则 |
 | `AGENTS.md` | 本仓库自身的维护边界 |
+| `.gitattributes` | Markdown 空白检查识别 CRLF，同时保留行尾空格、文件末尾空行和缩进检查，不强制改写现有换行 |
 | `BUG_HISTORY.md` | 创建记录与后续问题修复记录 |
 | `AI修Bug提问模板.md` | 可选的详细问题交接模板，不是 Skill 自动使用的必填提示 |
 
@@ -83,6 +88,8 @@
 ```
 
 两个 Skill 可以先后使用：bootstrapper 负责建立边界，maintainer 负责后续局部维护。维护 Skill 不强制 bootstrapper 生成的文件名；它会识别项目的等价文档并遵循现有约定。
+
+需求模式沿用同一任务的已有选择；只有尚未选择时才提供三选一。选择直接执行不扩大文件或外部操作授权。维护者普通 Bug 修复不以前置补建索引为条件；MICRO 单文件工具默认不创建文档目录。共享源通过 `sync-skill-references.mjs --write` 同步为两个本地参考，验证器检查副本一致及递归引用闭包。
 
 ## 发布调用关系
 

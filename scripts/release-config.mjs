@@ -18,7 +18,7 @@ export const RELEASE_FILES = {
 };
 
 export const VERIFICATION_COMMANDS = [
-  ['node', '--test', 'scripts/tests/index-health.test.mjs', 'scripts/tests/skill-frontmatter.test.mjs', 'scripts/tests/release.test.mjs'],
+  ['node', '--test', 'scripts/tests/index-health.test.mjs', 'scripts/tests/skill-frontmatter.test.mjs', 'scripts/tests/release.test.mjs', 'scripts/tests/skill-integrity.test.mjs'],
   ['node', 'scripts/verify-skill-repo.mjs'],
   ['git', 'diff', '--check']
 ];

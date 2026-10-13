@@ -1,0 +1,2 @@
+# Preserve existing Markdown line endings while checking actual whitespace defects.
+*.md whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

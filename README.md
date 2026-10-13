@@ -100,7 +100,7 @@ DURABLE  **默认档位**：长期 AI 维护 / 多人协作 / 大型项目 / 高
 
 ## 三、两个 Skill 详解
 
-标准源路径：`skills/ai-project-maintainer/SKILL.md` 和 `skills/ai-project-bootstrapper/SKILL.md`。两个 Skill 自包含，可单独安装，也可一起安装。
+标准源路径：`skills/ai-project-maintainer/SKILL.md` 和 `skills/ai-project-bootstrapper/SKILL.md`。两个 Skill 自包含，可单独安装，也可一起安装。运行时需求流程使用各自的 `references/requirements-dialogue.md`；维护时编辑共享源，再运行 `node scripts/sync-skill-references.mjs --write`，校验器会拒绝副本漂移和越界引用。
 
 ### `ai-project-maintainer` — 已有项目维护者
 
@@ -148,13 +148,13 @@ DURABLE  **默认档位**：长期 AI 维护 / 多人协作 / 大型项目 / 高
 用户要求单文件 / 一次性脚本 / 快速实验  ──> MICRO
   无服务生命周期、无复杂持久化、无多模块接口、无长期维护需求
 
-普通应用 / 服务 / CLI / 自动化工具（无特殊要求）──> STANDARD（默认）
+用户明确要求轻量且无需长期 AI 导航 ──> STANDARD
   建立清晰入口、模块边界、README、最小测试
 
 长期维护 / 多人多 AI 协作 / 大型项目 / 高安全财务数据要求 ──> DURABLE（默认）
   添加 AGENTS.md、ai-context/INDEX.md、按目录的多级导航、任务路由、架构记录、操作验证；新增独立职责时创建规范模块并更新最近一级 INDEX
 
-新项目维护文档默认放入根 `文档/`；已有 `文档/`、`docs/` 或 `documentation/` 时复用，不重复迁移，后续新增维护文档直接写入已选规范目录。
+STANDARD / DURABLE 的维护文档默认放入根 `文档/`；已有 `文档/`、`docs/` 或 `documentation/` 时复用，不重复迁移。MICRO 默认不创建附加文档目录，用户要求单文件时保持单文件。
 ```
 
 **完成报告格式：**
@@ -306,7 +306,7 @@ release.bat
 本仓库无 npm 运行时依赖，直接运行：
 
 ```bash
-node --test scripts/tests/index-health.test.mjs scripts/tests/skill-frontmatter.test.mjs scripts/tests/release.test.mjs
+node --test scripts/tests/index-health.test.mjs scripts/tests/skill-frontmatter.test.mjs scripts/tests/release.test.mjs scripts/tests/skill-integrity.test.mjs
 node scripts/verify-skill-repo.mjs
 git diff --check
 ```
@@ -515,7 +515,7 @@ npx skills add https://github.com/canglei9527/ai-maintenance-skills
 
 **Verify:**
 ```bash
-node --test scripts/tests/index-health.test.mjs scripts/tests/skill-frontmatter.test.mjs scripts/tests/release.test.mjs
+node --test scripts/tests/index-health.test.mjs scripts/tests/skill-frontmatter.test.mjs scripts/tests/release.test.mjs scripts/tests/skill-integrity.test.mjs
 node scripts/verify-skill-repo.mjs
 ```
 

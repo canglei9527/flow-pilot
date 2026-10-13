@@ -17,7 +17,7 @@ npx skills add https://github.com/canglei9527/ai-maintenance-skills --skill ai-p
 npx skills add https://github.com/canglei9527/ai-maintenance-skills --skill ai-project-bootstrapper
 ```
 
-两个 Skill 都包含自己的参考文件，单独安装不会产生跨 Skill 断链。
+两个 Skill 都包含自己的 `references/requirements-dialogue.md` 和其他运行时参考，单独复制或安装一个 Skill 不需要兄弟目录 `shared/`。仓库中的共享文件只用于维护，修改后运行 `node scripts/sync-skill-references.mjs --write`；日常只读检查使用默认的 `--check`，仓库验证也会检查同步状态。
 
 `npx skills` 是独立的第三方安装器；命令和可用选项以其当前版本为准。安装前可查看帮助：
 
@@ -108,7 +108,7 @@ workspace/book-source-search/
 npx skills --help
 ```
 
-如果使用手工复制方式，则重新复制仓库中的 `.agents/skills/` 以更新，删除目标项目或用户 Skills 目录中的两个 Skill 文件夹以卸载。
+如果使用手工复制方式，则重新复制仓库中的 `skills/` 以更新，删除目标项目或用户 Skills 目录中的两个 Skill 文件夹以卸载。
 
 ## 手工后备安装
 

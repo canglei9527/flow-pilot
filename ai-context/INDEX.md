@@ -1,5 +1,5 @@
 <!-- ai-context-format: 1 -->
-<!-- reviewed-date: 2026-08-27 -->
+<!-- reviewed-date: 2026-10-13 -->
 
 # AI Context Index
 
@@ -13,4 +13,5 @@ This reviewed index owns maintenance intent, canonical entry points, and focused
 | Change Skill frontmatter parsing | Restricted metadata parser | `scripts/skill-frontmatter.mjs` | `node --test scripts/tests/skill-frontmatter.test.mjs` | Installation or discovery rejects or skips a Skill. |
 | Change release behavior | Release orchestration modules | `scripts/INDEX.md` | `node --test scripts/tests/release.test.mjs` | Versioning, verification, push, tag, or Release behavior changes. |
 | Change documentation migration rules | Explicit docs-organization workflow | `skills/ai-project-maintainer/references/documentation-migration.md` | `node scripts/verify-skill-repo.mjs` | A docs-organization request moves files wrongly, is not idempotent, or triggers on a normal fix. |
-| Change requirements dialogue gate | Shared three-option clarification gate | `skills/shared/requirements-dialogue.md` | `node scripts/verify-skill-repo.mjs` | The gate appears for bug fixes, or an option asks too much or too little. |
+| Change requirements dialogue gate | Shared editing source and synchronized local references | `skills/shared/requirements-dialogue.md` | `node scripts/sync-skill-references.mjs --check` | The gate repeats an existing choice or expands authorization; sync local copies after editing. |
+| Fix single-Skill installs or repository boundary false positives | Runtime reference closure and distributable paths | `scripts/skill-integrity.mjs` | `node --test scripts/tests/skill-integrity.test.mjs` | A reference escapes the installed Skill, local sessions fail verification, or missing files crash diagnostics. |

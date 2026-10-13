@@ -1,7 +1,7 @@
 ---
 name: ai-project-maintainer
 version: "0.4.17"
-description: "中文触发：修复、解决、排查、异常、报错、回归、继续未完成工作、更新维护文档；无需项目名或路径。Use for bug, regression, broken feature, review, diagnose, fix, extend, or restructure an existing project. Do not infer write authorization from a path or attachment."
+description: "维护已有项目：修复、排查、异常、报错、回归、刷新后又出现、修复这个BUG、现有产品行为与期望行为差异、继续未完成工作、收尾、验证归档、更新维护文档；无需项目名。Use for bug fix, review, diagnose, regression, explain, extend or refactor existing projects. Not for new standalone projects."
 when_to_use: "Existing project maintenance: bug fixes, feature changes, refactoring, code review, investigation. Not for creating new projects from scratch."
 ---
 
@@ -17,7 +17,7 @@ when_to_use: "Existing project maintenance: bug fixes, feature changes, refactor
 | 修复 Bug、调整配置、变更现有行为或更新本地回归测试 | `NORMAL_CHANGE` | 仅命名的兼容范围 |
 | 新增或扩展现有功能 | `NORMAL_CHANGE` | 先经过需求澄清门，再按确认的兼容范围修改 |
 | 明确要求重构、拆分、迁移、模块化、解决 God Class 或累积补丁问题、让项目更易维护、减少 AI 上下文，或实施已批准的结构范围 | `STRUCTURAL_CHANGE` | 仅已批准的结构范围 |
-| 删除、推送、发布、部署、变更生产/远端状态、发送数据，或创建/执行可触发远端工作的 CI | `EXTERNAL_ACTION` 门 | 对具体操作单独确认 |
+| 删除用户文件、推送、发布、部署、变更生产/远端状态、发送数据，或创建/执行可触发远端工作的 CI | `EXTERNAL_ACTION` 门 | 核对具体操作的现有授权；缺失时才询问 |
 
 "帮我看看结构"是 `READ_ONLY`，不授权移动文件。向现有 monorepo 添加新包属于维护者工作。新建或空目录独立项目属于 `ai-project-bootstrapper`。
 
@@ -30,7 +30,7 @@ when_to_use: "Existing project maintenance: bug fixes, feature changes, refactor
 | `NORMAL_CHANGE` 目标是大文件或反复补丁文件 | `fast-path.md` 维护性检查点和必要验证章节 | 结构迁移流程（除非单独授权） |
 | `STRUCTURAL_CHANGE` 或导入项目整理 | [`references/structural-change.md`](references/structural-change.md)、[`references/verification-and-safety.md`](references/verification-and-safety.md) | 无关的快速路径章节 |
 | 明确要求“整理维护文档”、迁移 Markdown 或统一文档目录 | [`references/documentation-migration.md`](references/documentation-migration.md)、[`references/verification-and-safety.md`](references/verification-and-safety.md) | 普通 Bug 快速路径和无关源码模块 |
-| 新增或扩展功能 | [`../shared/requirements-dialogue.md`](../shared/requirements-dialogue.md)，然后按变更路径读取其他参考 | 修 Bug、解释、审查、诊断、普通配置调整和仅重构不读取此参考 |
+| 新增或扩展功能 | [`references/requirements-dialogue.md`](references/requirements-dialogue.md)，然后按变更路径读取其他参考 | 修 Bug、解释、审查、诊断、普通配置调整和仅重构不读取此参考 |
 | 外部、破坏性、远端、生产、依赖、许可证、密钥或 CI 问题 | [`references/verification-and-safety.md`](references/verification-and-safety.md) 相关章节 | 无关的迁移模板 |
 
 所有必要参考文件均从本文件一跳可达，且可独立使用。
@@ -55,7 +55,7 @@ when_to_use: "Existing project maintenance: bug fixes, feature changes, refactor
 
 ## 新增功能的需求澄清门
 
-确认请求属于新增或扩展功能后、读取项目源码或创建文件前，读取 [`../shared/requirements-dialogue.md`](../shared/requirements-dialogue.md)，先显示 `开始需求问卷`、`跳过问卷` 和 `完全不问，直接执行` 三个选项。修 Bug、解释、审查、诊断、普通配置调整和仅重构不显示此选择。该需求门是可选的需求澄清，不调用或替代 IDE 计划模式；`完全不问` 不主动制造计划审批，但不绕过客户端或系统强制的计划门。
+确认请求属于新增或扩展功能后，读取 [`references/requirements-dialogue.md`](references/requirements-dialogue.md)。先复用用户已明确的需求模式；尚未选择时，在读取项目源码或创建文件前提供 `开始需求问卷`、`跳过问卷` 和 `完全不问，直接执行` 三个选项，具体等待规则见参考。修 Bug、解释、审查、诊断、普通配置调整和仅重构不显示此选择。需求模式只改变沟通方式，不扩大修改授权，也不调用、替代或绕过客户端强制的计划门。
 
 ## 简短工作流
 

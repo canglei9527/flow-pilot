@@ -33,7 +33,7 @@
 
 ## 验证和发布
 
-1. 运行 `node --test scripts/tests/index-health.test.mjs scripts/tests/skill-frontmatter.test.mjs scripts/tests/release.test.mjs`、`node scripts/verify-skill-repo.mjs` 和 `git diff --check`。
+1. 运行 `node --test scripts/tests/index-health.test.mjs scripts/tests/skill-frontmatter.test.mjs scripts/tests/release.test.mjs scripts/tests/skill-integrity.test.mjs`、`node scripts/verify-skill-repo.mjs` 和 `git diff --check`。
 2. 增加或修改 Skill 后，至少用 `evals/prompts.md` 中的一组提示检查触发语义和输出要求；没有独立 Skill 运行时测试时，明确标记为人工评估。
 3. 修复验证脚本或文档问题后，在 `BUG_HISTORY.md` 记录现象、根因、修改和验证结果。
 4. 更改目录、Skill 名称、引用关系或安装方式时，更新 `ARCHITECTURE.md` 和 `README.md`。

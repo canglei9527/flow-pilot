@@ -11,12 +11,13 @@
 ## 修改 Skill
 
 - 保持 frontmatter 的 `name` 与目录名一致。
-- frontmatter 只保留 `name` 和 `description`；`description` 使用双引号包裹，确保冒号等 YAML 特殊字符可安全解析。
+- frontmatter 保留 `name`、`description` 和发布工具管理的 `version`；本仓库兼容的可选字段以 `scripts/skill-frontmatter.mjs` 为准（包括已有 `when_to_use`）。`description` 使用双引号包裹。通用 Skill 校验器可能使用不同的字段白名单，应记录格式兼容差异，不擅自移除发布字段。
 - `description` 要同时说明触发场景和 Skill 要完成的工作；不要只写抽象口号。
-- 触发词必须排进 `description` 的前 249 字符：客户端技能列表只渲染该前缀，排在后面的触发词模型看不到，表现为"Skill 已安装但从不自动触发"。把中文触发词、续作类触发词（继续/未完成/收尾）、英文触发词和反向路由子句依次前置，`node scripts/verify-skill-repo.mjs` 会检查这一窗口。
+- 触发词优先放在 `description` 的前 249 字符：这是历史客户端观测形成的兼容预算，不是所有客户端的固定截断协议，也不证明实际触发率。把中英文触发词、续作信号与反向路由前置，`node scripts/verify-skill-repo.mjs` 会检查这一预算。
+- 需求流程只编辑 `skills/shared/requirements-dialogue.md`，再运行 `node scripts/sync-skill-references.mjs --write` 同步到两个 Skill 的本地参考。运行时不得依赖兄弟 Skill 或仓库根文件；校验器会递归检查引用，并拒绝副本漂移。
 - 正文优先写执行顺序和决策边界，具体表格和长模板放到 `references/`。
 - 每个 Skill 必须可单独安装，引用只指向自身目录内的 `references/`，不跨 Skill 取文件。
-- 运行时预算：`description` 不超过 600 字符，正文不超过 14000 字符，`SKILL.md` 不超过 200 行；超过时优先做渐进披露。
+- 运行时预算：`description` 不超过 1000 字符，正文不超过 14000 字符，`SKILL.md` 不超过 200 行；这些是上限，入口应尽量简短，超过时优先做渐进披露。
 - 保留项目无关的表达。若规则只适用于某个框架或团队，应放到示例或单独 Skill，而不是污染通用 Skill。
 - 不以更多大写的 MUST/NEVER 代替清晰的原因和行动步骤。
 - 修改触发语义时，至少在 `evals/prompts.md` 增加或调整一个评估提示。
@@ -26,7 +27,7 @@
 在仓库根目录运行：
 
 ```bash
-node --test scripts/skill-frontmatter.test.mjs scripts/release.test.mjs
+node --test scripts/tests/index-health.test.mjs scripts/tests/skill-frontmatter.test.mjs scripts/tests/release.test.mjs scripts/tests/skill-integrity.test.mjs
 node scripts/verify-skill-repo.mjs
 git diff --check
 ```
