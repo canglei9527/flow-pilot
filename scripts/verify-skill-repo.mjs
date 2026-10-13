@@ -6,7 +6,7 @@ import { inspectIndex } from './index-health.mjs';
 import { inspectRepositoryBoundary, inspectSkillReferences } from './skill-integrity.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const releaseVersion = '0.4.17';
+const releaseVersion = '0.4.18';
 const failures = [];
 const check = (condition, message) => {
   if (!condition) failures.push(message);

@@ -9,7 +9,7 @@
     {
       "name": "ai-maintenance-skills",
       "description": "AI 项目维护与初始化工作流：修复 Bug、最小修改、验证与记录。Workflows for bug fixes, focused changes, verification, and project bootstrap.",
-      "version": "0.4.17",
+      "version": "0.4.18",
       "source": "./",
       "author": {
         "name": "canglei9527",

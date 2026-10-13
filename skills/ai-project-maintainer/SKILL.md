@@ -1,6 +1,6 @@
 ---
 name: ai-project-maintainer
-version: "0.4.17"
+version: "0.4.18"
 description: "维护已有项目：修复、排查、异常、报错、回归、刷新后又出现、修复这个BUG、现有产品行为与期望行为差异、继续未完成工作、收尾、验证归档、更新维护文档；无需项目名。Use for bug fix, review, diagnose, regression, explain, extend or refactor existing projects. Not for new standalone projects."
 when_to_use: "Existing project maintenance: bug fixes, feature changes, refactoring, code review, investigation. Not for creating new projects from scratch."
 ---
