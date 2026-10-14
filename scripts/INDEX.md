@@ -4,7 +4,7 @@
 |---|---|---|---|---|
 | `release.mjs` | Parses release CLI options and sequences release phases. | `node scripts/release.mjs` | release config, version, Git, GitHub modules | Running or resuming a release. |
 | `release-config.mjs` | Owns release paths, defaults, verification commands, and retry settings. | exported constants | none | Changing repository release conventions. |
-| `release-version.mjs` | Validates SemVer, synchronizes version metadata, and inserts changelog sections. | metadata read/prepare/apply exports | release config, Node fs | Version or changelog changes. |
+| `release-version.mjs` | Validates SemVer, synchronizes versions, preserves Markdown notes, and updates changelog and README history. | metadata read/prepare/apply exports | release config, Node fs | Version, release notes, or README history changes. |
 | `release-git.mjs` | Inspects Git state and owns commit, push, tag, and retry operations. | Git inspection and mutation exports | release config, Node child process | Git preflight or retry behavior. |
 | `release-github.mjs` | Owns authenticated `gh` release lookup and publication. | GitHub auth/release exports | release Git retry helpers | GitHub Release behavior. |
 | `verify-skill-repo.mjs` | Read-only repository integrity verification. | `node scripts/verify-skill-repo.mjs` | frontmatter parser, index health, skill integrity | Validating repository content. |
@@ -22,7 +22,7 @@
 | Task | First file | One direct dependency | Focused test | Implementation lines |
 |---|---|---|---|---|
 | Change release flags or phase order | `release.mjs` | `release-config.mjs` | `release.test.mjs` | under 400 |
-| Change version/changelog behavior | `release-version.mjs` | `release-config.mjs` | `release.test.mjs` | under 300 |
+| Change version/history or Markdown release notes | `release-version.mjs` | `release-config.mjs` | `release.test.mjs` | under 300 |
 | Diagnose push/tag/Release retry | `release-git.mjs` or `release-github.mjs` | `release-config.mjs` | `release.test.mjs` | under 350 |
 
 The release CLI does not store credentials or persistent state. It derives resume state from Git tags, commits, and GitHub Release records.

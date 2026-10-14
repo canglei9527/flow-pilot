@@ -1,3 +1,13 @@
+## 2026-10-14：补齐版本历史并保留发布说明格式
+
+- 现象：v0.4.18 的 tag 和 GitHub Release 已发布，但 README 的版本历史停在 v0.4.17；Release 只有三条笼统摘要，没有说明具体故障、使用行为和验证范围。更早的结构化说明写入 CHANGELOG 时，标题和代码块也被逐行转换成列表。
+- 根因：版本准备只处理插件、Skill、验证器、CHANGELOG 和发布存档，未读取或更新 README；`bulletList` 对所有非空行添加列表前缀，破坏 Markdown；发布前只核对 tag 和远端状态，未核对用户可见版本历史及说明内容。
+- 修改文件：`scripts/release-config.mjs`、`scripts/release-version.mjs`、`scripts/release.mjs`、`scripts/tests/release.test.mjs`；README、CHANGELOG、v0.4.18 发布存档、架构和脚本索引。修正上一条记录中的版本一致性数字。
+- 修改方式：README 纳入受控版本准备和取消恢复；新增版本时在历史顶部插入日期和完整说明链接，缺少历史入口或版本重复时失败。结构化 Markdown 保留标题、段落、列表和代码块，旧的纯文本逐行说明继续转换为列表。补齐 v0.4.18 的六项具体修复、发布时的 47 项测试及人工评估边界。
+- 验证命令：`node --test scripts/tests/index-health.test.mjs scripts/tests/skill-frontmatter.test.mjs scripts/tests/release.test.mjs scripts/tests/skill-integrity.test.mjs`；`node scripts/verify-skill-repo.mjs`；`node scripts/sync-skill-references.mjs --check`；`git diff --check`。
+- 验证结果：50/50 Node 测试 PASS；新增 3 项回归在修改前均失败，修改后通过，覆盖 README 历史插入与 CRLF 保留、Markdown 结构保留、入口缺失/版本重复阻断。仓库、参考同步和空白检查 PASS。发布编排和版本准备保持既有职责划分，README 与 Bug 历史的篇幅来自历史记录，未引入新的混合职责。
+- 验证边界：这次修正发布文档和发布工具，未修改 Skill 规则；v0.4.18 功能改动仍以原 tag 为准。真实客户端触发和网络安装未新增验证。
+
 ## 2026-10-13：修复 Skill 分发引用、执行范围和仓库校验失真
 
 - 现象：基线 35 项 Node 测试通过，但仓库校验报 12 项失败；单独复制任一 Skill 后需求参考指向未分发的兄弟 `shared/`；缺少 `LICENSE` 时校验器抛异常，无法汇总失败。需求模式会重复询问，直接执行包含工作区内任意删除的过宽表述，普通修复和 MICRO 的文档规则互相冲突。
@@ -10,7 +20,7 @@
   - 复用同一任务的需求模式与具体操作授权；直接执行不扩大修改、删除或外部操作范围。用户明确请求的多个事项逐阶段持续完成。普通 Bug 不以前置补建索引为条件；MICRO 默认保持单文件且不额外建文档目录。
   - 修正旧测试路径和 STANDARD 默认档位说明；Markdown 空白检查识别已有 CRLF，但仍拒绝实际行尾空格，不重写全文件换行或改动本机 Git 配置。
 - 验证命令：`node --test scripts/tests/index-health.test.mjs scripts/tests/skill-frontmatter.test.mjs scripts/tests/release.test.mjs scripts/tests/skill-integrity.test.mjs`；`node scripts/verify-skill-repo.mjs`；`node scripts/sync-skill-references.mjs --check`；`git diff --check`。
-- 验证结果：47/47 Node 测试 PASS，其中新增 12 项隔离回归；仓库校验 PASS（2 个 Skill、50 个必要文件、0.4.16 版本一致）；同步检查与空白检查 PASS。最初新增的 9 项测试在修改前有 7 项失败，覆盖真实断链、错误边界及崩溃，并在修复后通过。
+- 验证结果：47/47 Node 测试 PASS，其中新增 12 项隔离回归；仓库校验 PASS（2 个 Skill、50 个必要文件、功能提交时统一到 0.4.17，后续发布为 0.4.18）；同步检查与空白检查 PASS。最初新增的 9 项测试在修改前有 7 项失败，覆盖真实断链、错误边界及崩溃，并在修复后通过。
 - 人工语义评估：根据 `evals/prompts.md` 逐条对照当前指令推演，**未运行独立模型或真实客户端 forward-test**。
 
 | 提示 | 静态人工评估结论 |

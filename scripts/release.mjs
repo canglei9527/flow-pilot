@@ -171,7 +171,8 @@ function metadataForPath(metadata, path) {
     [RELEASE_FILES.codexPlugin]: `${JSON.stringify(metadata.codexPlugin, null, 2)}\n`,
     [RELEASE_FILES.marketplace]: `${JSON.stringify(metadata.marketplace, null, 2)}\n`,
     [RELEASE_FILES.verifier]: metadata.verifier,
-    [RELEASE_FILES.changelog]: metadata.changelog
+    [RELEASE_FILES.changelog]: metadata.changelog,
+    [RELEASE_FILES.readme]: metadata.readme
   };
   return content[path];
 }

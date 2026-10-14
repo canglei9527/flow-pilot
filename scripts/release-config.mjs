@@ -14,7 +14,8 @@ export const RELEASE_FILES = {
   verifier: 'scripts/verify-skill-repo.mjs',
   maintainerSkill: 'skills/ai-project-maintainer/SKILL.md',
   bootstrapperSkill: 'skills/ai-project-bootstrapper/SKILL.md',
-  changelog: 'CHANGELOG.md'
+  changelog: 'CHANGELOG.md',
+  readme: 'README.md'
 };
 
 export const VERIFICATION_COMMANDS = [

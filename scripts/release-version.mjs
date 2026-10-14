@@ -39,10 +39,24 @@ function updateSkillVersion(text, version) {
   return updated + text.slice(frontmatter.length);
 }
 
-function bulletList(notes) {
-  const lines = notes.trim().split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-  if (!lines.length) throw new Error('Release notes are required');
-  return lines.map((line) => line.startsWith('- ') ? line : `- ${line}`).join('\n');
+function formatReleaseNotes(notes) {
+  const content = notes.trim();
+  if (!content) throw new Error('Release notes are required');
+  // Keep authored Markdown intact; retain bullet formatting for legacy plain-line notes.
+  if (/^(?:#{1,6}[ \t]|[-*+][ \t]|\d+[.)][ \t]|>|`{3}|~{3}|\||[ \t]{4}\S)/m.test(content)
+      || /\r?\n[ \t]*\r?\n/.test(content)) return content;
+  return content.split(/\r?\n/).map((line) => `- ${line.trim()}`).join('\n');
+}
+
+function updateReadmeHistory(readme, version, date) {
+  const heading = /^## 版本历史\r?\n(?:\r?\n)?/m;
+  if (!heading.test(readme ?? '')) throw new Error('README version history heading is missing');
+  if (new RegExp(`^### v${version.replaceAll('.', '\\.')}(?:[ \\t]|$)`, 'm').test(readme)) {
+    throw new Error(`README already contains version ${version}`);
+  }
+  const eol = readme.includes('\r\n') ? '\r\n' : '\n';
+  const entry = `### v${version} — ${date}${eol}${eol}[完整发布说明](docs/releases/v${version}.md)${eol}${eol}`;
+  return readme.replace(heading, `## 版本历史${eol}${eol}${entry}`);
 }
 
 async function readJson(root, relativePath) {
@@ -50,12 +64,13 @@ async function readJson(root, relativePath) {
 }
 
 export async function readReleaseMetadata(root) {
-  const [claudePlugin, codexPlugin, marketplace, verifier, changelog, maintainerSkill, bootstrapperSkill] = await Promise.all([
+  const [claudePlugin, codexPlugin, marketplace, verifier, changelog, readme, maintainerSkill, bootstrapperSkill] = await Promise.all([
     readJson(root, RELEASE_FILES.claudePlugin),
     readJson(root, RELEASE_FILES.codexPlugin),
     readJson(root, RELEASE_FILES.marketplace),
     readFile(join(root, RELEASE_FILES.verifier), 'utf8'),
     readFile(join(root, RELEASE_FILES.changelog), 'utf8'),
+    readFile(join(root, RELEASE_FILES.readme), 'utf8'),
     readFile(join(root, SKILL_FILES.maintainer), 'utf8'),
     readFile(join(root, SKILL_FILES.bootstrapper), 'utf8')
   ]);
@@ -68,7 +83,7 @@ export async function readReleaseMetadata(root) {
   const versions = [claudePlugin.version, codexPlugin.version, marketplaceVersion, verifierMatch?.[1], maintainerMetadata.version, bootstrapperMetadata.version];
   if (versions.some((version) => !version)) throw new Error('Release version metadata is incomplete');
   if (new Set(versions).size !== 1) throw new Error(`Release version metadata disagrees: ${versions.join(', ')}`);
-  return { version: versions[0], claudePlugin, codexPlugin, marketplace, verifier, changelog, skills: { maintainer: maintainerSkill, bootstrapper: bootstrapperSkill } };
+  return { version: versions[0], claudePlugin, codexPlugin, marketplace, verifier, changelog, readme, skills: { maintainer: maintainerSkill, bootstrapper: bootstrapperSkill } };
 }
 
 export function prepareReleaseMetadata(metadata, version, notes, date) {
@@ -84,8 +99,10 @@ export function prepareReleaseMetadata(metadata, version, notes, date) {
   entry.version = version;
   const verifier = metadata.verifier.replace(VERSION_PATTERN, `const releaseVersion = '${version}';`);
   if (verifier === metadata.verifier) throw new Error('Verifier version constant was not found');
-  const section = `## ${version} - ${date}\n\n${bulletList(notes)}\n\n`;
-  const releaseDocument = `# v${version} 发布介绍\n\n发布日期：${date} · 版本线：${metadata.version} -> ${version}\n\n## 主要变更\n\n${bulletList(notes)}\n\n`;
+  const readme = updateReadmeHistory(metadata.readme, version, date);
+  const formattedNotes = formatReleaseNotes(notes);
+  const section = `## ${version} - ${date}\n\n${formattedNotes}\n\n`;
+  const releaseDocument = `# v${version} 发布介绍\n\n发布日期：${date} · 版本线：${metadata.version} -> ${version}\n\n## 主要变更\n\n${formattedNotes}\n\n`;
   return {
     [RELEASE_FILES.claudePlugin]: `${JSON.stringify({ ...metadata.claudePlugin, version }, null, 2)}\n`,
     [RELEASE_FILES.codexPlugin]: `${JSON.stringify({ ...metadata.codexPlugin, version }, null, 2)}\n`,
@@ -94,6 +111,7 @@ export function prepareReleaseMetadata(metadata, version, notes, date) {
     [SKILL_FILES.maintainer]: updateSkillVersion(metadata.skills.maintainer, version),
     [SKILL_FILES.bootstrapper]: updateSkillVersion(metadata.skills.bootstrapper, version),
     [RELEASE_FILES.changelog]: metadata.changelog.replace(/^# 变更记录\r?\n\r?\n/, `# 变更记录\n\n${section}`),
+    [RELEASE_FILES.readme]: readme,
     [`docs/releases/v${version}.md`]: releaseDocument
   };
 }

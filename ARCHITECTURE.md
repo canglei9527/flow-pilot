@@ -38,7 +38,7 @@
 | `scripts/tests/skill-integrity.test.mjs` | 隔离源码归档、Git 会话边界、缺失文件诊断、副本同步和单 Skill 分发回归 |
 | `scripts/release.mjs` | 发布 CLI 编排：dry-run、版本准备、验证、提交、推送、tag 和 Release 阶段 |
 | `scripts/release-config.mjs` | 发布路径、默认分支、验证命令和重试策略的唯一所有者 |
-| `scripts/release-version.mjs` | SemVer、插件/marketplace/verifier/两个 Skill frontmatter 版本元数据同步和 changelog 顶部段落 |
+| `scripts/release-version.mjs` | SemVer、插件/marketplace/verifier/两个 Skill 版本同步、CHANGELOG 和发布说明 Markdown 保留、README 版本历史插入 |
 | `scripts/release-git.mjs` | Git 预检、提交、推送、tag 与可重试命令执行 |
 | `scripts/release-github.mjs` | 认证的 `gh` Release 查询、创建和传播轮询 |
 | `scripts/tests/release.test.mjs` | 发布模块的离线行为测试 |
@@ -96,7 +96,7 @@
 ```text
 release.mjs
   -> release-config.mjs: 默认路径、分支、验证和重试策略
-  -> release-version.mjs: 读取/校验/同步版本与 CHANGELOG
+  -> release-version.mjs: 读取/校验/同步版本、CHANGELOG、README 版本历史和发布说明存档
   -> release-git.mjs: 本地预检、提交、push、annotated tag、重试
   -> release-github.mjs: gh 身份检查、Release 幂等查询与创建
 

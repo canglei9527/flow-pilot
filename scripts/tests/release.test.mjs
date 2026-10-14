@@ -15,6 +15,7 @@ function metadata() {
     marketplace: { plugins: [{ name: 'ai-maintenance-skills', version: '0.4.0' }] },
     verifier: "const releaseVersion = '0.4.0';\n",
     changelog: '# 变更记录\n\n## 0.4.0 - 2026-08-06\n\n- Existing release.\n',
+    readme: '# Project\n\n## 版本历史\n\n### v0.4.0 — 2026-08-06\n\nExisting history.\n',
     skills: {
       maintainer: '---\nname: ai-project-maintainer\nversion: "0.4.0"\ndescription: "Maintainer"\n---\n\n# Maintainer\n',
       bootstrapper: '---\nname: ai-project-bootstrapper\nversion: "0.4.0"\ndescription: "Bootstrapper"\n---\n\n# Bootstrapper\n'
@@ -55,6 +56,29 @@ test('preserves Skill text and rejects missing version metadata', () => {
   assert.throws(() => prepareReleaseMetadata(input, '0.5.0', 'Test', '2026-09-05'), /version metadata is missing/);
 });
 
+test('prepends README version history without changing older content or line endings', () => {
+  const input = metadata();
+  input.readme = input.readme.replaceAll('\n', '\r\n');
+  const updates = prepareReleaseMetadata(input, '0.5.0', 'Test', '2026-10-14');
+  const entry = '### v0.5.0 — 2026-10-14\r\n\r\n[完整发布说明](docs/releases/v0.5.0.md)\r\n\r\n';
+  assert.equal(updates['README.md'], input.readme.replace('## 版本历史\r\n\r\n', `## 版本历史\r\n\r\n${entry}`));
+});
+
+test('preserves structured Markdown in changelog and archived release notes', () => {
+  const notes = '## Fixes\n\nAn explanation with two paragraphs.\n\n- A concrete fix.\n\n```sh\nnode scripts/verify-skill-repo.mjs\n```\n\n| Check | Result |\n|---|---|\n| Fixture | PASS |';
+  const updates = prepareReleaseMetadata(metadata(), '0.5.0', notes, '2026-10-14');
+  assert.ok(updates['CHANGELOG.md'].includes(`\n\n${notes}\n\n`));
+  assert.ok(updates['docs/releases/v0.5.0.md'].includes(`\n\n${notes}\n\n`));
+});
+
+test('rejects missing or duplicate README history entries', () => {
+  const input = metadata();
+  input.readme = '# Project\n';
+  assert.throws(() => prepareReleaseMetadata(input, '0.5.0', 'Test', '2026-10-14'), /README version history heading/);
+  input.readme = metadata().readme + '\n### v0.5.0 — 2026-10-14\n';
+  assert.throws(() => prepareReleaseMetadata(input, '0.5.0', 'Test', '2026-10-14'), /README already contains version/);
+});
+
 test('reads synchronized metadata and rejects Skill version drift', async () => {
   const root = await mkdtemp(join(tmpdir(), 'release-metadata-'));
   const updates = prepareReleaseMetadata(metadata(), '0.5.0', 'Test', '2026-09-05');
@@ -62,7 +86,9 @@ test('reads synchronized metadata and rejects Skill version drift', async () => 
     await mkdir(join(root, path, '..'), { recursive: true });
   }
   await applyReleaseMetadata(root, updates);
-  assert.equal((await readReleaseMetadata(root)).version, '0.5.0');
+  const saved = await readReleaseMetadata(root);
+  assert.equal(saved.version, '0.5.0');
+  assert.equal(saved.readme, updates['README.md']);
   const skillPath = 'skills/ai-project-maintainer/SKILL.md';
   await writeFile(join(root, skillPath), updates[skillPath].replace('0.5.0', '0.4.0'));
   await assert.rejects(() => readReleaseMetadata(root), /metadata disagrees/);
