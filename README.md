@@ -297,7 +297,7 @@ node scripts/release.mjs --version 0.5.0 --title "标题" --notes-file release-n
 release.bat
 ```
 
-发布工具会自动：同步 3 份插件元数据版本、运行验证脚本、创建发布提交和 annotated tag、推送 main 与 tag、通过 `gh` CLI 创建 GitHub Release。
+发布工具会自动：同步插件、marketplace、两个 Skill 和验证器的版本，更新 CHANGELOG、README 版本历史和发布说明存档，运行验证，创建发布提交和 annotated tag，推送 main 与 tag，通过 `gh` CLI 创建 GitHub Release。`--notes-file` 支持 Markdown 标题、段落、列表和代码块；发布说明保留原有格式，README 新条目链接到完整说明。
 
 ---
 
@@ -318,6 +318,19 @@ DURABLE 项目可以复制 `scripts/index-health.mjs`，或从本仓库运行 `n
 ---
 
 ## 版本历史
+
+### v0.4.18 — 2026-10-13
+
+**修复单独安装断链、重复确认与仓库校验**
+
+- 两个 Skill 各自携带需求流程参考文件，修复只安装一个 Skill 时引用兄弟目录 `shared/` 导致的断链；同步检查防止副本漂移。
+- 同一任务沿用已选择的问卷模式和已明确授权的具体操作；“直接执行”不扩大删除、推送或发布范围。
+- 普通 Bug 修复不再以前置补建治理目录为条件；MICRO 默认保持单文件；多个已请求事项逐阶段完成。
+- 恢复维护与续作的中英文发现信号，将 249 字符限制明确为历史兼容预算。
+- 递归检查参考链接及符号链接边界，修正本地忽略文件误报，缺失 `LICENSE` 时汇总错误而非崩溃。
+- 发布时 47 项 Node 测试通过，含新增 12 项隔离回归；触发与执行规则完成静态人工评估，真实客户端触发和网络安装尚未验证。
+
+[完整发布说明](docs/releases/v0.4.18.md) · [GitHub Release](https://github.com/canglei9527/flow-pilot/releases/tag/v0.4.18)
 
 ### v0.4.17 — 2026-10-09
 
